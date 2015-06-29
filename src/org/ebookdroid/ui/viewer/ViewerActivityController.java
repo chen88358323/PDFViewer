@@ -490,7 +490,7 @@ public class ViewerActivityController extends AbstractActivityController<ViewerA
 
         executor.execute(new SearchTask(), newPattern, oldPattern, (String) action.getParameter("forward"));
     }
-
+//跳转页面
     @ActionMethod(ids = R.id.mainmenu_goto_page)
     public void showGotoDialog(final ActionEx action) {
         final GoToPageDialog dlg = new GoToPageDialog(this);
@@ -571,7 +571,7 @@ public class ViewerActivityController extends AbstractActivityController<ViewerA
         builder.setPositiveButton(R.id.actions_addBookmark, new EditableValue("input", input));
         builder.setNegativeButton().show();
     }
-
+  //添加书签
     @ActionMethod(ids = R.id.actions_addBookmark)
     public void addBookmark(final ActionEx action) {
         final Editable value = action.getParameter("input");
