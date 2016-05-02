@@ -271,7 +271,7 @@ public class BooksAdapter extends PagerAdapter implements FileSystemScanner.List
             getService(i);
         }
     }
-
+//获取最近浏览
     protected synchronized BookShelfAdapter getService(final int index) {
         BookShelfAdapter a = data.get(index);
         if (a == null) {

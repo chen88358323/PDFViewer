@@ -1,23 +1,22 @@
 package org.ebookdroid.common.settings.books;
 
-import org.ebookdroid.common.settings.BackupSettings;
-import org.ebookdroid.common.settings.SettingsManager;
-
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.ebookdroid.common.settings.BackupSettings;
+import org.ebookdroid.common.settings.SettingsManager;
 import org.emdev.common.backup.BackupManager;
 import org.emdev.common.backup.IBackupAgent;
 import org.emdev.utils.LengthUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBSettingsManager extends SQLiteOpenHelper implements IDBAdapter, IBackupAgent {
 
@@ -278,4 +277,23 @@ public class DBSettingsManager extends SQLiteOpenHelper implements IDBAdapter, I
             SettingsManager.LCTX.e("Error on recent book restoring: " + ex.getMessage());
         }
     }
+
+	@Override
+	public List<Version> getVersionByBookNameMd5Val(Version v) {
+		List<Version>   vl=adapter.getVersionByBookNameMd5Val(v);
+		return vl;
+	}
+
+	@Override
+	public boolean storeVersion(Version v) {
+		// TODO Auto-generated method stub
+		return adapter.storeVersion(v);
+	}
+
+	@Override
+	public long  getMaxVnumByBookNameMd5Val(Version v) {
+		// TODO Auto-generated method stub
+		return adapter.getMaxVnumByBookNameMd5Val(v);
+	}
+	
 }

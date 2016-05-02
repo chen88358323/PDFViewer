@@ -14,6 +14,8 @@ class DBAdapterV2 extends DBAdapterV1 {
     public static final int VERSION = 2;
 
     public static final String DB_BOOKMARK_CREATE = "create table bookmarks ("
+    		// bookid
+            + "bid INTEGER PRIMARY KEY , "
     // Book file path
             + "book varchar(1024) not null, "
             // Current document page
@@ -27,9 +29,9 @@ class DBAdapterV2 extends DBAdapterV1 {
 
     public static final String DB_BOOKMARK_DROP = "DROP TABLE bookmarks";
 
-    public static final String DB_BOOKMARK_STORE = "INSERT OR REPLACE INTO bookmarks (book, doc_page, view_page, name) VALUES (?, ?, ?, ?)";
+    public static final String DB_BOOKMARK_STORE = "INSERT OR REPLACE INTO bookmarks (bid ,book, doc_page, view_page, name) VALUES (?,?, ?, ?, ?)";
 
-    public static final String DB_BOOKMARK_GET_ALL = "SELECT doc_page, view_page, name FROM bookmarks WHERE book = ? ORDER BY view_page ASC";
+    public static final String DB_BOOKMARK_GET_ALL = "SELECT bid,doc_page, view_page, name FROM bookmarks WHERE book = ? ORDER BY bid ASC";
 
     public static final String DB_BOOKMARK_DEL_ALL = "DELETE FROM bookmarks WHERE book=?";
 

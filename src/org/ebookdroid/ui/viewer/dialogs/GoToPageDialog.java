@@ -1,24 +1,16 @@
 package org.ebookdroid.ui.viewer.dialogs;
 
+import java.io.File;
+import java.util.Date;
+
 import org.ebookdroid.common.settings.AppSettings;
 import org.ebookdroid.common.settings.books.BookSettings;
 import org.ebookdroid.common.settings.books.Bookmark;
+import org.ebookdroid.common.settings.books.Version;
 import org.ebookdroid.core.Page;
 import org.ebookdroid.core.models.DocumentModel;
 import org.ebookdroid.ui.viewer.IActivityController;
 import org.ebookdroid.ui.viewer.adapters.BookmarkAdapter;
-
-import android.app.Dialog;
-import android.content.Context;
-import android.text.Editable;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
-import android.widget.Toast;
-
 import org.emdev.ui.actions.ActionDialogBuilder;
 import org.emdev.ui.actions.ActionEx;
 import org.emdev.ui.actions.ActionMethod;
@@ -30,8 +22,19 @@ import org.emdev.ui.uimanager.IUIManager;
 import org.emdev.ui.widget.IViewContainer;
 import org.emdev.ui.widget.SeekBarIncrementHandler;
 import org.emdev.utils.LayoutUtils;
+import org.emdev.utils.md5.Md5Creater;
 
 import the.pdfviewerx.R;
+import android.app.Dialog;
+import android.content.Context;
+import android.text.Editable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.Toast;
 
 public class GoToPageDialog extends Dialog {
 
@@ -188,17 +191,33 @@ public class GoToPageDialog extends Dialog {
 
     @ActionMethod(ids = R.id.actions_addBookmark)
     public void addBookmark(final ActionEx action) {
+    	
         final Editable value = action.getParameter("input");
         final Bookmark bookmark = action.getParameter("bookmark");
+  
+        
+        String fileName = adapter.bookSettings.fileName.substring(adapter.bookSettings.fileName.lastIndexOf("/")+1);  
+        
+        //判断增加修改书签
         if (bookmark != null) {
             bookmark.name = value.toString();
             adapter.update(bookmark);
+            //增加修改记录
+            Version v=new Version(Md5Creater.getMd5(fileName)  ,"UPDATE" ,fileName,new Date().getTime() );
+            v.setMarksname(bookmark.name);
+            adapter.storeVersions(v);
         } else {
             final Integer viewIndex = action.getParameter("viewIndex");
             final Page page = base.getDocumentModel().getPageObject(viewIndex);
-            adapter.add(new Bookmark(value.toString(), page.index, 0, 0));
+            String val=value.toString();
+            adapter.add(new Bookmark(val, page.index, 0, 0));
+            //增加修改记录
+            Version v=new Version(Md5Creater.getMd5(val)  ,"ADD" ,val,new Date().getTime() );
+            adapter.storeVersions(v);
             adapter.notifyDataSetChanged();
         }
+        
+        
     }
 
     @ActionMethod(ids = { R.id.bookmark_remove_all, R.id.actions_showDeleteAllBookmarksDlg })

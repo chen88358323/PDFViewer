@@ -11,6 +11,7 @@ import org.ebookdroid.common.settings.BackupSettings;
 import org.ebookdroid.common.settings.SettingsManager;
 import org.ebookdroid.common.settings.books.BookSettings;
 import org.ebookdroid.common.settings.books.Bookmark;
+import org.ebookdroid.common.settings.books.Version;
 import org.ebookdroid.common.settings.listeners.IAppSettingsChangeListener;
 import org.ebookdroid.common.settings.listeners.IBookSettingsChangeListener;
 import org.ebookdroid.common.settings.types.BookRotationType;
@@ -58,6 +59,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -85,6 +87,7 @@ import org.emdev.ui.uimanager.IUIManager;
 import org.emdev.utils.FileUtils;
 import org.emdev.utils.LengthUtils;
 import org.emdev.utils.StringUtils;
+import org.emdev.utils.md5.Md5Creater;
 
 import the.pdfviewerx.EBookDroidApp;
 import the.pdfviewerx.FolderDlg;
@@ -571,7 +574,7 @@ public class ViewerActivityController extends AbstractActivityController<ViewerA
         builder.setPositiveButton(R.id.actions_addBookmark, new EditableValue("input", input));
         builder.setNegativeButton().show();
     }
-  //添加书签
+  //添加书签  同一页可以增加多个书签
     @ActionMethod(ids = R.id.actions_addBookmark)
     public void addBookmark(final ActionEx action) {
         final Editable value = action.getParameter("input");
@@ -580,9 +583,14 @@ public class ViewerActivityController extends AbstractActivityController<ViewerA
         if (page != null) {
             final ViewState state = ViewState.get(getDocumentController());
             final PointF pos = state.getPositionOnPage(page);
+           
             bookSettings.bookmarks.add(new Bookmark(name, documentModel.getCurrentIndex(), pos.x, pos.y));
             Collections.sort(bookSettings.bookmarks);
             SettingsManager.storeBookSettings(bookSettings);
+            //
+            Version v=new Version(Md5Creater.getMd5(bookTitle)  ,"UPDATE" ,bookTitle,new Date().getTime() );
+            v.setMarksname(name);
+            SettingsManager.storeVersions(v);
             IUIManager.instance.invalidateOptionsMenu(getManagedComponent());
             state.release();
         }

@@ -43,4 +43,10 @@ interface IDBAdapter {
     boolean deleteAllBookmarks();
 
     boolean removeBookFromRecents(BookSettings bs);
+    
+    //根据bookname ,md5  查询记录
+    List<Version> getVersionByBookNameMd5Val(Version v);
+    //根据bookname ,md5  获得最大记录号
+  long  getMaxVnumByBookNameMd5Val(Version v) ;
+    boolean  storeVersion(Version v);
 }

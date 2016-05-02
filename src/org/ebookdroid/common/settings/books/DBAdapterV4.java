@@ -53,7 +53,9 @@ class DBAdapterV4 extends DBAdapterV3 {
     public static final String DB_BOOK_STORE = "INSERT OR REPLACE INTO book_settings (book, last_updated, doc_page, view_page, zoom, single_page, page_align, page_animation, split_pages, crop_pages, offset_x, offset_y) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     public static final String DB_BOOKMARK_CREATE = "create table bookmarks ("
-    // Book file path
+    		// bookid
+            + "bid INTEGER PRIMARY KEY AUTOINCREMENT , "
+    		// Book file path
             + "book varchar(1024) not null, "
             // Current document page
             + "doc_page integer not null, "
@@ -68,9 +70,12 @@ class DBAdapterV4 extends DBAdapterV3 {
             // ...
             + ");";
 
-    public static final String DB_BOOKMARK_STORE = "INSERT OR REPLACE INTO bookmarks (book, doc_page, view_page, name, offset_x, offset_y) VALUES (?, ?, ?, ?, ?, ?)";
+    public static final String DB_BOOKMARK_STORE = "INSERT   INTO bookmarks (bid,book, doc_page, view_page, name, offset_x, offset_y) VALUES (NULL,?, ?, ?, ?, ?, ?)";
 
-    public static final String DB_BOOKMARK_GET_ALL = "SELECT doc_page, view_page, name, offset_x, offset_y FROM bookmarks WHERE book = ? ORDER BY view_page ASC";
+    public static final String DB_BOOKMARK_UPDATE = "  REPLACE INTO bookmarks (book, doc_page, view_page, name, offset_x, offset_y) VALUES (?, ?, ?, ?, ?, ?)";
+
+    
+    public static final String DB_BOOKMARK_GET_ALL = "SELECT bid,doc_page, view_page, name, offset_x, offset_y FROM bookmarks WHERE book = ? ORDER BY  bid";
 
     public DBAdapterV4(final DBSettingsManager manager) {
         super(manager);
@@ -173,10 +178,11 @@ class DBAdapterV4 extends DBAdapterV3 {
             // ..
             };
             db.execSQL(DB_BOOKMARK_STORE, args);
+            LCTX.d("Bookmarks stored for " + book.fileName + ": " + book.bookmarks.size());
         }
 
         // if (LCTX.isDebugEnabled()) {
-        // LCTX.d("Bookmarks stored for " + book.fileName + ": " + book.bookmarks.size());
+//         LCTX.d("Bookmarks stored for " + book.fileName + ": " + book.bookmarks.size());
         // }
     }
 
@@ -189,7 +195,7 @@ class DBAdapterV4 extends DBAdapterV3 {
         final float offsetX = c.getInt(index++) / OFFSET_FACTOR;
         final float offsetY = c.getInt(index++) / OFFSET_FACTOR;
 
-        return new Bookmark(name, new PageIndex(docIndex, viewIndex), offsetX, offsetY);
+        return new Bookmark(0,name, new PageIndex(docIndex, viewIndex), offsetX, offsetY);
     }
 
 }

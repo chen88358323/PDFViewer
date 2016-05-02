@@ -1,7 +1,16 @@
 package org.ebookdroid.common.settings;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.ebookdroid.common.settings.books.BookSettings;
 import org.ebookdroid.common.settings.books.DBSettingsManager;
+import org.ebookdroid.common.settings.books.Version;
 import org.ebookdroid.common.settings.listeners.IAppSettingsChangeListener;
 import org.ebookdroid.common.settings.listeners.IBackupSettingsChangeListener;
 import org.ebookdroid.common.settings.listeners.IBookSettingsChangeListener;
@@ -13,26 +22,17 @@ import org.ebookdroid.common.settings.types.DocumentViewMode;
 import org.ebookdroid.common.settings.types.PageAlign;
 import org.ebookdroid.core.PageIndex;
 import org.ebookdroid.core.curl.PageAnimationType;
-
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.emdev.common.log.LogContext;
 import org.emdev.common.log.LogManager;
 import org.emdev.utils.FileUtils;
 import org.emdev.utils.LengthUtils;
 import org.emdev.utils.concurrent.Flag;
 import org.emdev.utils.listeners.ListenerProxy;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 public class SettingsManager {
 
@@ -174,7 +174,7 @@ public class SettingsManager {
         }
         return bs;
     }
-
+    
     public static void releaseBookSettings(final long ownerId, final BookSettings current) {
         if (current == null || !current.persistent) {
             return;
@@ -501,5 +501,11 @@ public class SettingsManager {
             LCTX.i("BookSettingsUpdate thread finished");
         }
     }
-
+//业务处理,
+	public static Version  storeVersions (final Version v) {
+		long num =db.getMaxVnumByBookNameMd5Val(v);
+		v.setVnum(num+1);
+        boolean b = db.storeVersion(v);
+        return v;
+}
 }

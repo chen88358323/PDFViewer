@@ -55,6 +55,22 @@ class DBAdapterV8 extends DBAdapterV7 {
             + ");"
     //
     ;
+    public static final String DB_VERSION_CREATE = "create table versions ("
+    	    // Book file path
+    	            + "id  integer PRIMARY KEY ,"
+    	            // Last update time
+    	            + "vnum integer not null, "
+    	            // Current document page
+    	            + "md5  TEXT  not null, "
+    	            + "marksname  TEXT , "
+    	            + "bookname  TEXT  , "
+    	            + "method  TEXT   not null, "
+    	            // Page zoom
+    	            + "createtime integer  NOT NULL  , "
+    	            // Split pages on/off
+    	            + "modifytime integer   " +
+    	            // ...
+    	            ");";
 
     public static final String DB_BOOK_GET_ALL = "SELECT book, last_updated, first_page_offset, doc_page, view_page, zoom, view_mode, page_align, page_animation, flags, offset_x, offset_y, contrast, gamma, exposure, type_specific FROM book_settings ORDER BY book ASC";
 
@@ -72,6 +88,7 @@ class DBAdapterV8 extends DBAdapterV7 {
     public void onCreate(final SQLiteDatabase db) {
         db.execSQL(DB_BOOK_CREATE);
         db.execSQL(DB_BOOKMARK_CREATE);
+        db.execSQL(DB_VERSION_CREATE);
     }
 
     @Override

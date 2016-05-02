@@ -3,6 +3,7 @@ package org.ebookdroid.ui.library.adapters;
 import org.ebookdroid.common.settings.books.BookSettings;
 import org.ebookdroid.ui.library.IBrowserActivity;
 
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -50,6 +51,7 @@ public class RecentAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int i, final View view, final ViewGroup parent) {
+    	
         final ViewHolder holder = BaseViewHolder.getOrCreateViewHolder(ViewHolder.class, R.layout.recentitem, view,
                 parent);
 
@@ -57,7 +59,7 @@ public class RecentAdapter extends BaseAdapter {
         final File file = new File(node.path);
 
         holder.name.setText(file.getName());
-
+        Log.i("cctest", "  第"+i+" 号书名是"+file.getName());
         base.loadThumbnail(node.path, holder.imageView, R.drawable.recent_item_book);
 
         holder.info.setText(FileUtils.getFileDate(file.lastModified()));

@@ -1,12 +1,17 @@
 package org.ebookdroid.ui.viewer.adapters;
 
+import java.util.Collections;
+
 import org.ebookdroid.common.settings.SettingsManager;
 import org.ebookdroid.common.settings.books.BookSettings;
 import org.ebookdroid.common.settings.books.Bookmark;
+import org.ebookdroid.common.settings.books.Version;
 import org.ebookdroid.core.Page;
 import org.ebookdroid.core.PageIndex;
 import org.ebookdroid.ui.viewer.views.BookmarkView;
+import org.emdev.ui.actions.IActionController;
 
+import the.pdfviewerx.R;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,12 +19,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import java.util.Collections;
-
-import org.emdev.ui.actions.IActionController;
-
-import the.pdfviewerx.R;
 
 public final class BookmarkAdapter extends BaseAdapter {
 
@@ -48,11 +47,15 @@ public final class BookmarkAdapter extends BaseAdapter {
         for (final Bookmark bookmark : bookmarks) {
             bookSettings.bookmarks.add(bookmark);
         }
+        
         Collections.sort(bookSettings.bookmarks);
         SettingsManager.storeBookSettings(bookSettings);
         notifyDataSetChanged();
     }
-
+    //增加操作记录
+    public void storeVersions(Version v){
+    	SettingsManager.storeVersions(v);
+    }
     public void update(Bookmark b) {
         Collections.sort(bookSettings.bookmarks);
         SettingsManager.storeBookSettings(bookSettings);

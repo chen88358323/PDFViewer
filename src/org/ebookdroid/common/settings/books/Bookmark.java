@@ -7,7 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Bookmark implements Comparable<Bookmark> {
-
+	public long bid;
     public boolean service;
     public String name;
     public PageIndex page;
@@ -17,7 +17,14 @@ public class Bookmark implements Comparable<Bookmark> {
     public Bookmark(final String name, final PageIndex page, final float offsetX, final float offsetY) {
         this(false, name, page, offsetX, offsetY);
     }
-
+    public Bookmark(long bid, final String name, final PageIndex page, final float offsetX,
+            final float offsetY) {
+        this.bid = bid;
+        this.name = name;
+        this.page = page;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+    }
     public Bookmark(final boolean service, final String name, final PageIndex page, final float offsetX,
             final float offsetY) {
         this.service = service;
@@ -55,7 +62,7 @@ public class Bookmark implements Comparable<Bookmark> {
     public String toString() {
         return name;
     }
-
+//compare id is ok
     @Override
     public int compareTo(final Bookmark that) {
         if (that == null) {

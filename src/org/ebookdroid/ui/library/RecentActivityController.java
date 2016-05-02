@@ -113,7 +113,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
 
         final LibSettings libSettings = LibSettings.current();
         LibSettings.applySettingsChanges(null, libSettings);
-
+//获取最近图书列表
         final BookSettings recent = SettingsManager.getRecentBook();
 
         if (!recreated) {
@@ -575,7 +575,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     @Override
     public void onLibSettingsChanged(final LibSettings oldSettings, final LibSettings newSettings,
             final LibSettings.Diff diff) {
-        try {
+        try {//load books msg
             final FileExtensionFilter filter = newSettings.allowedFileTypes;
             if (diff.isUseBookcaseChanged()) {
                 recentAdapter.setBooks(SettingsManager.getRecentBooks().values(), filter);

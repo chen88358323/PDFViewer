@@ -1,5 +1,11 @@
 package org.ebookdroid.common.settings.books;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.ebookdroid.common.settings.types.DocumentViewMode;
 import org.ebookdroid.common.settings.types.PageAlign;
 import org.ebookdroid.core.PageIndex;
@@ -8,18 +14,13 @@ import org.ebookdroid.core.curl.PageAnimationType;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-class DBAdapterV1 implements IDBAdapter {
+public class DBAdapterV1 implements IDBAdapter {
 
     public static final int VERSION = 1;
 
     public static final String DB_BOOK_CREATE = "create table book_settings ("
     // Book file path
-            + "book varchar(1024) primary key, "
+            + "book varchar(1024) not null , "
             // Last update time
             + "last_updated integer not null, "
             // Current document page
@@ -39,11 +40,13 @@ class DBAdapterV1 implements IDBAdapter {
             // ...
             ");";
 
+   
     public static final String DB_BOOK_GET_ALL = "SELECT book, last_updated, doc_page, view_page, zoom, single_page, page_align, page_animation, split_pages FROM book_settings where last_updated > 0 ORDER BY last_updated DESC";
 
     public static final String DB_BOOK_GET_ONE = "SELECT book, last_updated, doc_page, view_page, zoom, single_page, page_align, page_animation, split_pages FROM book_settings WHERE book=?";
 
-    public static final String DB_BOOK_STORE = "INSERT OR REPLACE INTO book_settings (book, last_updated, doc_page, view_page, zoom, single_page, page_align, page_animation, split_pages) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public static final String DB_BOOK_STORE = "INSERT OR REPLACE INTO book_settings (book, last_updated, doc_page," +
+    		" view_page, zoom, single_page, page_align, page_animation, split_pages) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     public static final String DB_BOOK_DEL = "DELETE FROM book_settings WHERE book=?";
 
@@ -62,6 +65,7 @@ class DBAdapterV1 implements IDBAdapter {
     @Override
     public void onCreate(final SQLiteDatabase db) {
         db.execSQL(DB_BOOK_CREATE);
+    
     }
 
     @Override
@@ -377,6 +381,18 @@ class DBAdapterV1 implements IDBAdapter {
 
         return bs;
     }
+    protected Version createVersion(final Cursor c) {
+        int index = 0;
+        final Version bs = new Version();
+        bs.setId(c.getLong(index++));
+        bs.setVnum(c.getLong(index++));
+        bs.setMd5(c.getString(index++));
+        bs.setMethod(c.getString(index++));
+        bs.setCreatetime(c.getLong(index++));
+        bs.setModifytime(index);
+
+        return bs;
+    }
 
     void updateBookmarks(final BookSettings bs, final SQLiteDatabase db) {
     }
@@ -399,4 +415,94 @@ class DBAdapterV1 implements IDBAdapter {
         } catch (final Exception ex) {
         }
     }
+    public static final String getVersionByNameMD5Val="select  * from versions where md5=? and bookname=? order by vnum";
+	/**获取该书的记录列表**/
+    @Override
+	public  List<Version> getVersionByBookNameMd5Val(Version v) {
+		 List<Version> vl=new ArrayList<Version>();
+		 
+	        try {
+	            final SQLiteDatabase db = manager.getReadableDatabase();
+	            try {
+	                final Cursor c = db.rawQuery(getVersionByNameMD5Val,  new String[]{v.getMd5(),v.getBookname()});
+	                if (c != null) {
+	                    try {
+	                        for (boolean next = c.moveToFirst(); next; next = c.moveToNext()) {
+	                            final Version bs = createVersion(c);
+
+	                            vl.add(bs);
+	                        }
+	                    } finally {
+	                        close(c);
+	                    }
+	                }
+	            } finally {
+	                manager.closeDatabase(db);
+	            }
+	        } catch (final Throwable th) {
+	            LCTX.e("Retrieving book settings failed: ", th);
+	        }
+
+	        return vl;
+	}
+    public static final String getMaxVnumByNameMD5Val="select  max(vnum) from versions where md5=? and bookname=?";
+    @Override
+	public  long  getMaxVnumByBookNameMd5Val(Version v) {
+    	long res=0;
+	        try {
+	            final SQLiteDatabase db = manager.getReadableDatabase();
+	            try {
+	                final Cursor c = db.rawQuery(getMaxVnumByNameMD5Val,  new String[]{v.getMd5(),v.getBookname()});
+	                if (c != null) {
+	                    try {
+	                    	c.moveToFirst();
+	                    	res=c.getLong(0);
+	                    } finally {
+	                        close(c);
+	                    }
+	                }
+	            } finally {
+	                manager.closeDatabase(db);
+	            }
+	        } catch (final Throwable th) {
+	            LCTX.e("Retrieving book settings failed: ", th);
+	        }
+
+	        return res;
+	}
+    public static final String DB_VERSION_STORE = "INSERT OR REPLACE INTO versions (vnum, md5, method, bookname,marksname, createtime, modifytime) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+	@Override
+	public boolean storeVersion(Version v) {
+		  try {
+	            final SQLiteDatabase db = manager.getWritableDatabase();
+	            try {
+	                db.beginTransaction();
+	                final Object[] args = new Object[] {
+	    	                // File name
+	    	               v.getVnum(),
+	    	                // Last update
+	    	                v.getMd5(),
+	    	                // Current view page
+	    	               v.getMethod(),
+	    	                // Current page zoom
+	    	                v.getBookname(),
+	    	                v.getMarksname(),
+	    	                // Page align
+	    	              v.getCreatetime(),
+	    	                // Split pages on/off
+	    	              v.getModifytime() };
+	    	        db.execSQL(DB_VERSION_STORE, args);
+
+	                db.setTransactionSuccessful();
+
+	                return true;
+	            } finally {
+	                endTransaction(db);
+	            }
+	        } catch (final Throwable th) {
+	            LCTX.e("Update book settings failed: ", th);
+	        }
+	        return false;
+	}
 }
