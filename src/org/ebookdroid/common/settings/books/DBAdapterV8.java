@@ -65,12 +65,11 @@ class DBAdapterV8 extends DBAdapterV7 {
     	            + "marksname  TEXT , "
     	            + "bookname  TEXT  , "
     	            + "method  TEXT   not null, "
-    	            // Page zoom
     	            + "createtime integer  NOT NULL  , "
-    	            // Split pages on/off
-    	            + "modifytime integer   " +
-    	            // ...
-    	            ");";
+    	            + "modifytime integer  , " 
+    	            + "synctag integer  DEFAULT 0  "
+//    	            + "synctag  BOOLEAN NOT NULL CHECK (synctag IN (0,1))   " 
+    	            +");";
 
     public static final String DB_BOOK_GET_ALL = "SELECT book, last_updated, first_page_offset, doc_page, view_page, zoom, view_mode, page_align, page_animation, flags, offset_x, offset_y, contrast, gamma, exposure, type_specific FROM book_settings ORDER BY book ASC";
 

@@ -445,6 +445,29 @@ public class DBAdapterV1 implements IDBAdapter {
 
 	        return vl;
 	}
+	public  long  getMaxVnumByBookNameMd5Val(String bn) {
+    	long res=0;
+	        try {
+	            final SQLiteDatabase db = manager.getReadableDatabase();
+	            try {
+	                final Cursor c = db.rawQuery(getMaxVnumByNameMD5Val,  new String[]{bn});
+	                if (c != null) {
+	                    try {
+	                    	c.moveToFirst();
+	                    	res=c.getLong(0);
+	                    } finally {
+	                        close(c);
+	                    }
+	                }
+	            } finally {
+	                manager.closeDatabase(db);
+	            }
+	        } catch (final Throwable th) {
+	            LCTX.e("Retrieving book settings failed: ", th);
+	        }
+
+	        return res;
+	}
     public static final String getMaxVnumByNameMD5Val="select  max(vnum) from versions where md5=? and bookname=?";
     @Override
 	public  long  getMaxVnumByBookNameMd5Val(Version v) {
@@ -470,7 +493,7 @@ public class DBAdapterV1 implements IDBAdapter {
 
 	        return res;
 	}
-    public static final String DB_VERSION_STORE = "INSERT OR REPLACE INTO versions (vnum, md5, method, bookname,marksname, createtime, modifytime) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public static final String DB_VERSION_STORE = "INSERT OR REPLACE INTO versions (vnum, md5, method, bookname,marksname, createtime, modifytime,synctag) VALUES (?, ?, ?, ?, ?, ?, ?,?)";
 
 	@Override
 	public boolean storeVersion(Version v) {
@@ -490,8 +513,9 @@ public class DBAdapterV1 implements IDBAdapter {
 	    	                v.getMarksname(),
 	    	                // Page align
 	    	              v.getCreatetime(),
-	    	                // Split pages on/off
-	    	              v.getModifytime() };
+	    	              v.getModifytime() ,
+	    	              v.getSyntag()
+	    	              };
 	    	        db.execSQL(DB_VERSION_STORE, args);
 
 	                db.setTransactionSuccessful();

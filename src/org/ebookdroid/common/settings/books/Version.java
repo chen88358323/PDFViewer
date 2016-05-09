@@ -13,9 +13,12 @@ public class Version {
 	    private String method;//可以改成枚举 目前是ADD DEL方法
 
 	    private String marksname;//标签名
+	    
 	    private String bookname;//书名
+	    
+	    private int syntag;//同步标记
 
-//暂时使用Long 代替
+        //暂时使用Long 代替
 	    private long  createtime;
 	    private long modifytime;
 	    
@@ -37,6 +40,14 @@ public class Version {
 
 		public long getModifytime() {
 			return modifytime;
+		}
+
+		public int getSyntag() {
+			return syntag;
+		}
+
+		public void setSyntag(int syntag) {
+			this.syntag = syntag;
 		}
 
 		public void setModifytime(long modifytime) {
@@ -88,7 +99,7 @@ public class Version {
 	    }
 
 		public Version(Long id, Long vnum, String md5, String method,
-				String bookname, long createtime, long modifytime) {
+				String bookname, long createtime, long modifytime ,int tag) {
 			super();
 			this.id = id;
 			this.vnum = vnum;
@@ -97,6 +108,7 @@ public class Version {
 			this.bookname = bookname;
 			this.createtime = createtime;
 			this.modifytime = modifytime;
+			this.syntag=tag;
 		}
 		public Version( String md5, String method,
 				String bookname, long createtime ) {

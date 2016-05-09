@@ -35,6 +35,7 @@ import android.widget.ProgressBar;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -622,11 +623,39 @@ public class RecentActivityController extends AbstractActivityController<RecentA
             @Override
             public void run() {
                 final FileExtensionFilter filter = LibSettings.current().allowedFileTypes;
-                recentAdapter.setBooks(SettingsManager.getRecentBooks().values(), filter);
+                Collection<BookSettings> rencetbooks=SettingsManager.getRecentBooks().values();
+                recentAdapter.setBooks(rencetbooks, filter);
+                //同步信息
+                
             }
         });
     }
 
+    //同步最新图书信息
+    private void syncRencetBooks( Collection<BookSettings> rb){
+    		if(rb!=null&&rb.size()>0){
+    			 for(Iterator<BookSettings> it=rb.iterator();it.hasNext();) {
+    				 BookSettings bs=it.next();
+    				 long local=SettingsManager.getMaxVnumByBookName(bs.fileName);
+    				 long remote=SettingsManager.getRemoteMaxVnumByBookName(bs.fileName);
+    				 if(local==remote)
+    					 continue;
+    				 if(local<remote){//远程有更新
+    					 //获取增量数据
+    					 
+    					 //写入数据库
+    					 
+    				 }else{
+    					 //查看本地是否有更新
+    					 
+    					 //提交增量数据
+    					 
+    					 //提交成功，修改本地状态
+    				 }
+    			 }
+    			
+    		}
+    }
     public void changeLibraryView(final int view) {
         if (!LibSettings.current().useBookcase) {
             getManagedComponent().changeLibraryView(view);

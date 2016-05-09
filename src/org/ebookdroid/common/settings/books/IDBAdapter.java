@@ -48,5 +48,9 @@ interface IDBAdapter {
     List<Version> getVersionByBookNameMd5Val(Version v);
     //根据bookname ,md5  获得最大记录号
   long  getMaxVnumByBookNameMd5Val(Version v) ;
+  //根据bookname ,md5  获得最大记录号
+  long  getMaxVnumByBookNameMd5Val(String v) ;
+  
+  
     boolean  storeVersion(Version v);
 }
