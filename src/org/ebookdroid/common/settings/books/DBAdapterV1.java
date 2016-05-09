@@ -445,12 +445,13 @@ public class DBAdapterV1 implements IDBAdapter {
 
 	        return vl;
 	}
+    public static final String getSyncedMaxVnumByNameMD5Val="select  max(vnum) from versions where bookname=? and synctag=1";
 	public  long  getMaxVnumByBookNameMd5Val(String bn) {
     	long res=0;
 	        try {
 	            final SQLiteDatabase db = manager.getReadableDatabase();
 	            try {
-	                final Cursor c = db.rawQuery(getMaxVnumByNameMD5Val,  new String[]{bn});
+	                final Cursor c = db.rawQuery(getSyncedMaxVnumByNameMD5Val,  new String[]{bn});
 	                if (c != null) {
 	                    try {
 	                    	c.moveToFirst();

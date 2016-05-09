@@ -26,6 +26,7 @@ import org.emdev.common.log.LogContext;
 import org.emdev.common.log.LogManager;
 import org.emdev.utils.FileUtils;
 import org.emdev.utils.LengthUtils;
+import org.emdev.utils.StringUtils;
 import org.emdev.utils.concurrent.Flag;
 import org.emdev.utils.listeners.ListenerProxy;
 import org.emdev.utils.md5.Md5Creater;
@@ -511,12 +512,15 @@ public class SettingsManager {
 	}
 	//根据图书名称md5的值获取该图书的最大版本号
 	public static long getMaxVnumByBookName(String bookname){
-		long num =db.getMaxVnumByBookNameMd5Val(Md5Creater.getMd5(bookname));
+		 LCTX.i("***************bn"+bookname);
+//		 bookname=StringUtils.md5(bookname);
+		 //Md5Creater.getMd5(bookname)
+		 LCTX.i("***************md5 2"+bookname);
+		 long num =db.getMaxVnumByBookNameMd5Val(bookname);
 		return num;
 	}
 	//根据图书名称md5的值获取该图书的最大版本号
 		public static long getRemoteMaxVnumByBookName(String bookname){
-			long num =db.getMaxVnumByBookNameMd5Val(Md5Creater.getMd5(bookname));
-			return num;
+			return 0;
 		}
 }

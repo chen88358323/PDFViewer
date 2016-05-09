@@ -116,7 +116,8 @@ public class RecentActivityController extends AbstractActivityController<RecentA
         LibSettings.applySettingsChanges(null, libSettings);
 //获取最近图书列表
         final BookSettings recent = SettingsManager.getRecentBook();
-
+        //同步信息
+        syncRencetBooks(recent.fileName);
         if (!recreated) {
             init();
             recentLoaded = checkAutoLoad(libSettings, recent);
@@ -625,8 +626,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
                 final FileExtensionFilter filter = LibSettings.current().allowedFileTypes;
                 Collection<BookSettings> rencetbooks=SettingsManager.getRecentBooks().values();
                 recentAdapter.setBooks(rencetbooks, filter);
-                //同步信息
-                
+             
             }
         });
     }
@@ -635,6 +635,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     private void syncRencetBooks( Collection<BookSettings> rb){
     		if(rb!=null&&rb.size()>0){
     			 for(Iterator<BookSettings> it=rb.iterator();it.hasNext();) {
+    				
     				 BookSettings bs=it.next();
     				 long local=SettingsManager.getMaxVnumByBookName(bs.fileName);
     				 long remote=SettingsManager.getRemoteMaxVnumByBookName(bs.fileName);
@@ -655,6 +656,27 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     			 }
     			
     		}
+    }
+    
+    
+  //同步最新图书信息
+    private void syncRencetBooks( String bn){
+    	String temp[] = bn.split("/"); /**split里面必须是正则表达式，"\\"的作用是对字符串转义*/  
+    	bn = temp[temp.length-1];  
+    	long local=SettingsManager.getMaxVnumByBookName(bn);
+    	long remote=SettingsManager.getRemoteMaxVnumByBookName(bn);
+    	if(local<remote){//远程有更新
+    		//获取增量数据
+
+    		//写入数据库
+
+    	}else{
+    		//查看本地是否有更新
+
+    		//提交增量数据
+
+    		//提交成功，修改本地状态
+    	}
     }
     public void changeLibraryView(final int view) {
         if (!LibSettings.current().useBookcase) {
