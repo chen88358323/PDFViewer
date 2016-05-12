@@ -3,6 +3,8 @@ package org.ebookdroid.common.settings;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -503,24 +505,38 @@ public class SettingsManager {
             LCTX.i("BookSettingsUpdate thread finished");
         }
     }
-//业务处理,
-	public static Version  storeVersions (final Version v) {
-		long num =db.getMaxVnumByBookNameMd5Val(v);
+  //批量存储版本对象
+  	public static List<Boolean>  storeVersionsList (final List<Version> vl,String md5,int syntag) {
+  		//todo getMaxVnumByBookNameMd5Val 参数待确认
+  		long num =db.getMaxVnumByBookNameMd5Val(md5,syntag)+1l;
+  		List<Boolean> res=new LinkedList<Boolean>();
+  		for (int i = 0; i < vl.size(); i++) {
+			Version v=vl.get(i);
+			v.setVnum(num+i);
+			 boolean b = db.storeVersion(v);
+			 res.add(b);
+		}
+  		return res;
+  	}
+//存储版本对象
+	public static Version  storeVersions (final Version v,int syntag) {
+		long num =db.getMaxVnumByBookNameMd5Val(v,syntag);
 		v.setVnum(num+1);
         boolean b = db.storeVersion(v);
         return v;
 	}
 	//根据图书名称md5的值获取该图书的最大版本号
-	public static long getMaxVnumByBookName(String bookname){
+	public static long getMaxVnumByBookName(String bookname,int syntag){
 		 LCTX.i("***************bn"+bookname);
 //		 bookname=StringUtils.md5(bookname);
 		 //Md5Creater.getMd5(bookname)
 		 LCTX.i("***************md5 2"+bookname);
-		 long num =db.getMaxVnumByBookNameMd5Val(bookname);
+		 long num =db.getMaxVnumByBookNameMd5Val(bookname,syntag);
 		return num;
 	}
 	//根据图书名称md5的值获取该图书的最大版本号
 		public static long getRemoteMaxVnumByBookName(String bookname){
 			return 0;
 		}
+		
 }

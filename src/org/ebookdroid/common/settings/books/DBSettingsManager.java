@@ -279,11 +279,11 @@ public class DBSettingsManager extends SQLiteOpenHelper implements IDBAdapter, I
     }
 
 	@Override
-	public List<Version> getVersionByBookNameMd5Val(Version v) {
-		List<Version>   vl=adapter.getVersionByBookNameMd5Val(v);
+	public List<Version> getVersionByBookNameMd5Val(Version v,int syntag) {
+		List<Version>   vl=adapter.getVersionByBookNameMd5Val(v,syntag);
 		return vl;
 	}
-
+	
 	@Override
 	public boolean storeVersion(Version v) {
 		// TODO Auto-generated method stub
@@ -291,13 +291,13 @@ public class DBSettingsManager extends SQLiteOpenHelper implements IDBAdapter, I
 	}
 
 	@Override
-	public long  getMaxVnumByBookNameMd5Val(Version v) {
+	public long  getMaxVnumByBookNameMd5Val(Version v,int syntag) {
 		// TODO Auto-generated method stub
-		return adapter.getMaxVnumByBookNameMd5Val(v);
+		return adapter.getMaxVnumByBookNameMd5Val(v, syntag);
 	}
 	@Override
-	public long  getMaxVnumByBookNameMd5Val(String bn) {
+	public long  getMaxVnumByBookNameMd5Val(String bn,int syntag) {
 		// TODO Auto-generated method stub
-		return adapter.getMaxVnumByBookNameMd5Val( bn);
+		return adapter.getMaxVnumByBookNameMd5Val( bn, syntag);
 	}
 }

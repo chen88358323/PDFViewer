@@ -415,16 +415,16 @@ public class DBAdapterV1 implements IDBAdapter {
         } catch (final Exception ex) {
         }
     }
-    public static final String getVersionByNameMD5Val="select  * from versions where md5=? and bookname=? order by vnum";
+    public static final String getVersionByNameMD5Val="select  * from versions where md5=? and bookname=? and synctag=";
 	/**获取该书的记录列表**/
     @Override
-	public  List<Version> getVersionByBookNameMd5Val(Version v) {
+	public  List<Version> getVersionByBookNameMd5Val(Version v,int syncTag) {
 		 List<Version> vl=new ArrayList<Version>();
-		 
+		 	String order=" order by vnum desc";
 	        try {
 	            final SQLiteDatabase db = manager.getReadableDatabase();
 	            try {
-	                final Cursor c = db.rawQuery(getVersionByNameMD5Val,  new String[]{v.getMd5(),v.getBookname()});
+	                final Cursor c = db.rawQuery(getVersionByNameMD5Val+syncTag+order,  new String[]{v.getMd5(),v.getBookname()});
 	                if (c != null) {
 	                    try {
 	                        for (boolean next = c.moveToFirst(); next; next = c.moveToNext()) {
@@ -445,13 +445,14 @@ public class DBAdapterV1 implements IDBAdapter {
 
 	        return vl;
 	}
-    public static final String getSyncedMaxVnumByNameMD5Val="select  max(vnum) from versions where bookname=? and synctag=1";
-	public  long  getMaxVnumByBookNameMd5Val(String bn) {
+    //todo bookname or md5?
+    public static final String getMaxVnumByMD5ValSyncTag="select  max(vnum) from versions where bookname=? and synctag=";
+	public  long  getMaxVnumByBookNameMd5Val(String bn,int syncTag) {
     	long res=0;
 	        try {
 	            final SQLiteDatabase db = manager.getReadableDatabase();
 	            try {
-	                final Cursor c = db.rawQuery(getSyncedMaxVnumByNameMD5Val,  new String[]{bn});
+	                final Cursor c = db.rawQuery(getMaxVnumByMD5ValSyncTag+syncTag, new String[]{bn} );
 	                if (c != null) {
 	                    try {
 	                    	c.moveToFirst();
@@ -469,14 +470,14 @@ public class DBAdapterV1 implements IDBAdapter {
 
 	        return res;
 	}
-    public static final String getMaxVnumByNameMD5Val="select  max(vnum) from versions where md5=? and bookname=?";
+    public static final String getMaxVnumByNameMD5Val="select  max(vnum) from versions where md5=? and bookname=? and synctag=";
     @Override
-	public  long  getMaxVnumByBookNameMd5Val(Version v) {
+	public  long  getMaxVnumByBookNameMd5Val(Version v,int syncTag) {
     	long res=0;
 	        try {
 	            final SQLiteDatabase db = manager.getReadableDatabase();
 	            try {
-	                final Cursor c = db.rawQuery(getMaxVnumByNameMD5Val,  new String[]{v.getMd5(),v.getBookname()});
+	                final Cursor c = db.rawQuery(getMaxVnumByNameMD5Val+syncTag,  new String[]{v.getMd5(),v.getBookname()});
 	                if (c != null) {
 	                    try {
 	                    	c.moveToFirst();

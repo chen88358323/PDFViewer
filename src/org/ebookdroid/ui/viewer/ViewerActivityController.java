@@ -590,7 +590,7 @@ public class ViewerActivityController extends AbstractActivityController<ViewerA
             //
             Version v=new Version(Md5Creater.getMd5(name)  ,"ADD" ,bookTitle,new Date().getTime() );
             v.setMarksname(name);
-            SettingsManager.storeVersions(v);
+            SettingsManager.storeVersions(v,0);
             IUIManager.instance.invalidateOptionsMenu(getManagedComponent());
             state.release();
         }

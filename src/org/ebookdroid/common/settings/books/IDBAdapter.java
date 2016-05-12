@@ -45,13 +45,14 @@ interface IDBAdapter {
     boolean removeBookFromRecents(BookSettings bs);
     
     //根据bookname ,md5  查询记录
-    List<Version> getVersionByBookNameMd5Val(Version v);
+    List<Version> getVersionByBookNameMd5Val(Version v,int syntag);
+    
     //根据bookname ,md5  获得最大记录号
-  long  getMaxVnumByBookNameMd5Val(Version v) ;
-  //根据bookname ,md5  获得最大记录号
-  long  getMaxVnumByBookNameMd5Val(String v) ;
-//根据bookname md5值和同步状态  获得最大记录号
-//  long  getMaxVnumByBookNameMd5Val(String v,int syncTag) ;
+    long  getMaxVnumByBookNameMd5Val(Version v,int syntag) ;
+    //根据bookname ,md5  获得最大记录号
+    long  getMaxVnumByBookNameMd5Val(String v,int syntag) ;
+    //根据bookname md5值和同步状态  获得最大记录号
+    //  long  getMaxVnumByBookNameMd5Val(String v,int syncTag) ;
   
     boolean  storeVersion(Version v);
 }

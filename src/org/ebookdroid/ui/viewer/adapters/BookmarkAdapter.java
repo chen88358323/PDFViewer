@@ -53,8 +53,8 @@ public final class BookmarkAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
     //增加操作记录
-    public void storeVersions(Version v){
-    	SettingsManager.storeVersions(v);
+    public void storeVersions(Version v,int syncTag){
+    	SettingsManager.storeVersions(v,syncTag);
     }
     public void update(Bookmark b) {
         Collections.sort(bookSettings.bookmarks);

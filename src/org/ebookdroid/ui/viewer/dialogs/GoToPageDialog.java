@@ -205,7 +205,7 @@ public class GoToPageDialog extends Dialog {
             //增加修改记录
             Version v=new Version(Md5Creater.getMd5(fileName)  ,"UPDATE" ,fileName,new Date().getTime() );
             v.setMarksname(bookmark.name);
-            adapter.storeVersions(v);
+            adapter.storeVersions(v,0);
         } else {
             final Integer viewIndex = action.getParameter("viewIndex");
             final Page page = base.getDocumentModel().getPageObject(viewIndex);
@@ -213,7 +213,7 @@ public class GoToPageDialog extends Dialog {
             adapter.add(new Bookmark(val, page.index, 0, 0));
             //增加修改记录
             Version v=new Version(Md5Creater.getMd5(val)  ,"ADD" ,val,new Date().getTime() );
-            adapter.storeVersions(v);
+            adapter.storeVersions(v,0);
             adapter.notifyDataSetChanged();
         }
         

@@ -1,5 +1,11 @@
 package org.ebookdroid.ui.library;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.ebookdroid.CodecType;
 import org.ebookdroid.common.cache.CacheManager;
 import org.ebookdroid.common.cache.CacheManager.ICacheListener;
@@ -10,6 +16,7 @@ import org.ebookdroid.common.settings.LibSettings;
 import org.ebookdroid.common.settings.SettingsManager;
 import org.ebookdroid.common.settings.books.BookSettings;
 import org.ebookdroid.common.settings.books.Bookmark;
+import org.ebookdroid.common.settings.books.Version;
 import org.ebookdroid.common.settings.listeners.ILibSettingsChangeListener;
 import org.ebookdroid.common.settings.listeners.IRecentBooksChangedListener;
 import org.ebookdroid.ui.library.adapters.BookNode;
@@ -22,23 +29,6 @@ import org.ebookdroid.ui.library.tasks.CopyBookTask;
 import org.ebookdroid.ui.library.tasks.MoveBookTask;
 import org.ebookdroid.ui.library.tasks.RenameBookTask;
 import org.ebookdroid.ui.settings.SettingsUI;
-
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.text.Editable;
-import android.view.View;
-import android.view.Window;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.emdev.common.backup.BackupManager;
 import org.emdev.common.filesystem.FileExtensionFilter;
 import org.emdev.common.filesystem.MediaManager;
@@ -62,6 +52,17 @@ import the.pdfviewerx.FolderDlg;
 import the.pdfviewerx.R;
 import the.pdfviewerx.RecentActivity;
 import the.pdfviewerx.ViewerActivity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.text.Editable;
+import android.view.View;
+import android.view.Window;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+
+import com.alibaba.fastjson.JSON;
 
 public class RecentActivityController extends AbstractActivityController<RecentActivity> implements IBrowserActivity,
         ILibSettingsChangeListener, IRecentBooksChangedListener, ICacheListener, MediaManager.Listener {
@@ -637,7 +638,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     			 for(Iterator<BookSettings> it=rb.iterator();it.hasNext();) {
     				
     				 BookSettings bs=it.next();
-    				 long local=SettingsManager.getMaxVnumByBookName(bs.fileName);
+    				 long local=SettingsManager.getMaxVnumByBookName(bs.fileName,1);
     				 long remote=SettingsManager.getRemoteMaxVnumByBookName(bs.fileName);
     				 if(local==remote)
     					 continue;
@@ -663,21 +664,51 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     private void syncRencetBooks( String bn){
     	String temp[] = bn.split("/"); /**split里面必须是正则表达式，"\\"的作用是对字符串转义*/  
     	bn = temp[temp.length-1];  
-    	long local=SettingsManager.getMaxVnumByBookName(bn);
+    	long local=SettingsManager.getMaxVnumByBookName(bn,1);
     	long remote=SettingsManager.getRemoteMaxVnumByBookName(bn);
+    	//待同步
+    	long needSyn= SettingsManager.getMaxVnumByBookName(bn,0);
+        boolean update=false;
     	if(local<remote){//远程有更新
+    		update=true;
     		//获取增量数据
-
+    		List<Version> vl=getVersionListByremote(bn,local);
     		//写入数据库
-
-    	}else{
-    		//查看本地是否有更新
+    		if(vl!=null&&vl.size()>0){
+    			SettingsManager.storeVersionsList(vl, bn,1);
+    		}
+    		
+    	}
+    	if(local<needSyn){//有待上传版本
+    		//查看本地是否有更新,查询增量数据
 
     		//提交增量数据
 
     		//提交成功，修改本地状态
-    	}
+			
+		}
+    		
     }
+    
+    
+    private List<Version> getVersionListByremote(String md5,long vnum){
+    	String json="xx";//need edit url post
+    	if(json!=null&&!"".equals(json)){
+    		List<Version>  vl =paserJson2VersionList(json);
+    		return vl;
+    	}else
+    		return null;
+    		
+	}
+    
+    /***
+     * 解析json为list对象
+     * **/
+    private List<Version> paserJson2VersionList(String json){
+    	List<Version>  vl=JSON.parseArray(json, Version.class);
+    	return vl;
+    }
+    
     public void changeLibraryView(final int view) {
         if (!LibSettings.current().useBookcase) {
             getManagedComponent().changeLibraryView(view);
