@@ -2,8 +2,8 @@ package org.ebookdroid.ui.library;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.ebookdroid.CodecType;
@@ -45,6 +45,7 @@ import org.emdev.ui.uimanager.IUIManager;
 import org.emdev.utils.CompareUtils;
 import org.emdev.utils.FileUtils;
 import org.emdev.utils.LengthUtils;
+import org.emdev.utils.http.HttpUtils;
 
 import the.pdfviewerx.BrowserActivity;
 import the.pdfviewerx.EBookDroidApp;
@@ -633,31 +634,31 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     }
 
     //同步最新图书信息
-    private void syncRencetBooks( Collection<BookSettings> rb){
-    		if(rb!=null&&rb.size()>0){
-    			 for(Iterator<BookSettings> it=rb.iterator();it.hasNext();) {
-    				
-    				 BookSettings bs=it.next();
-    				 long local=SettingsManager.getMaxVnumByBookName(bs.fileName,1);
-    				 long remote=SettingsManager.getRemoteMaxVnumByBookName(bs.fileName);
-    				 if(local==remote)
-    					 continue;
-    				 if(local<remote){//远程有更新
-    					 //获取增量数据
-    					 
-    					 //写入数据库
-    					 
-    				 }else{
-    					 //查看本地是否有更新
-    					 
-    					 //提交增量数据
-    					 
-    					 //提交成功，修改本地状态
-    				 }
-    			 }
-    			
-    		}
-    }
+//    private void syncRencetBooks( Collection<BookSettings> rb){
+//    		if(rb!=null&&rb.size()>0){
+//    			 for(Iterator<BookSettings> it=rb.iterator();it.hasNext();) {
+//    				
+//    				 BookSettings bs=it.next();
+//    				 long local=SettingsManager.getMaxVnumByBookName(bs.fileName,1);
+//    				 long remote=SettingsManager.getRemoteMaxVnumByBookName(bs.fileName);
+//    				 if(local==remote)
+//    					 continue;
+//    				 if(local<remote){//远程有更新
+//    					 //获取增量数据
+//    					 
+//    					 //写入数据库
+//    					 
+//    				 }else{
+//    					 //查看本地是否有更新
+//    					 
+//    					 //提交增量数据
+//    					 
+//    					 //提交成功，修改本地状态
+//    				 }
+//    			 }
+//    			
+//    		}
+//    }
     
     
   //同步最新图书信息
@@ -665,7 +666,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     	String temp[] = bn.split("/"); /**split里面必须是正则表达式，"\\"的作用是对字符串转义*/  
     	bn = temp[temp.length-1];  
     	long local=SettingsManager.getMaxVnumByBookName(bn,1);
-    	long remote=SettingsManager.getRemoteMaxVnumByBookName(bn);
+    	long remote=getRemoteMaxVnumByBookName(bn);
     	//待同步
     	long needSyn= SettingsManager.getMaxVnumByBookName(bn,0);
         boolean update=false;
@@ -680,6 +681,11 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     		
     	}
     	if(local<needSyn){//有待上传版本
+    		if(update){
+    			long tar=remote-local;
+    		}else{
+    			
+    		}
     		//查看本地是否有更新,查询增量数据
 
     		//提交增量数据
@@ -688,6 +694,25 @@ public class RecentActivityController extends AbstractActivityController<RecentA
 			
 		}
     		
+    }
+    public static final String host="http://localhost:8080/rest/version";
+    
+    //根据书名获取最大数
+    private long getRemoteMaxVnumByBookName(String bn){
+    	String url =host+"/queryMaxNumByBN?bn=md5";
+    	String json="{\"msg\":\"9\",\"res\":\"success\"}";
+//    	String json=HttpUtils.doPost(url, param);
+    	if(json!=null&&!"".equals(json)){
+    		Map<String,String> map=(Map<String,String>)JSON.parse(json);
+    		String res=map.get("res");
+    		if(res!=null&&!"".equals(res)&&"success".equalsIgnoreCase(res)){
+    			Long r=Long.parseLong(map.get("msg"));
+    			return r;
+    		}else{
+    			LCTX.e("getRemoteMaxVnumByBookName:"+bn+" error"+map.get("msg"));
+    		}
+    	}
+    	return 0;
     }
     
     
