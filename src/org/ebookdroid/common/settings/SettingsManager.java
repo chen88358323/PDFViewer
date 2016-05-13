@@ -506,13 +506,15 @@ public class SettingsManager {
         }
     }
   //批量存储版本对象
-  	public static List<Boolean>  storeVersionsList (final List<Version> vl,String md5,int syntag) {
+  	public static List<Boolean>  storeVersionsList (final List<Version> vl,String bn,int syntag) {
   		//todo getMaxVnumByBookNameMd5Val 参数待确认
-  		long num =db.getMaxVnumByBookNameMd5Val(md5,syntag)+1l;
+  		long num =db.getMaxVnumByBookNameMd5Val(bn,syntag)+1l;
   		List<Boolean> res=new LinkedList<Boolean>();
   		for (int i = 0; i < vl.size(); i++) {
 			Version v=vl.get(i);
+			v.setBookname(bn);
 			v.setVnum(num+i);
+			v.setSyntag(syntag);
 			 boolean b = db.storeVersion(v);
 			 res.add(b);
 		}
@@ -529,14 +531,25 @@ public class SettingsManager {
 	public static long getMaxVnumByBookName(String bookname,int syntag){
 		 LCTX.i("***************bn"+bookname);
 //		 bookname=StringUtils.md5(bookname);
-		 //Md5Creater.getMd5(bookname)
+		 bookname= Md5Creater.getMd5(bookname);
 		 LCTX.i("***************md5 2"+bookname);
 		 long num =db.getMaxVnumByBookNameMd5Val(bookname,syntag);
-		return num;
+		 return num;
 	}
 	//根据图书名称md5的值获取该图书的最大版本号
 		public static long getRemoteMaxVnumByBookName(String bookname){
 			return 0;
 		}
 		
+		//获取指定版本集合
+	  	public static List<Version>  getVersionsList (String bn,int syntag) {
+	  		List<Version> list=db.getVersionByBookNameMd5Val(bn, Md5Creater.getMd5(bn), syntag);
+	  		return list;
+	  	}
+	  	
+		//获取指定版本集合
+	  	public static boolean  updateVersion (long id,int syntag) {
+	  		boolean res=db.updateVersion(id, syntag);
+	  		return res;
+	  	}
 }

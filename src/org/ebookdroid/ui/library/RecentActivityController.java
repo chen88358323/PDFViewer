@@ -122,7 +122,8 @@ public class RecentActivityController extends AbstractActivityController<RecentA
 //获取最近图书列表
         final BookSettings recent = SettingsManager.getRecentBook();
         //同步信息
-//        syncRencetBooks(recent.fileName);
+        if(recent!=null&&!"".equals(recent.fileName))
+        	syncRencetBooks(recent.fileName);
         if (!recreated) {
             init();
             recentLoaded = checkAutoLoad(libSettings, recent);
@@ -643,7 +644,8 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     	bn = temp[temp.length-1];  
     	vlog.i("******"+bn+" is start sync md5 is:"+Md5Creater.getMd5(bn));
     	long local=SettingsManager.getMaxVnumByBookName(bn,1);
-    	long remote=getRemoteMaxVnumByBookName(bn);
+//    	long remote=getRemoteMaxVnumByBookName(bn);
+    	long remote=0;
     	//待同步
     	long needSyn= SettingsManager.getMaxVnumByBookName(bn,0);
         boolean update=false;
@@ -652,24 +654,34 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     		//获取增量数据
     		List<Version> vl=getVersionListByremote(bn,local);
     		if(vl!=null&&vl.size()>0){
-    			//转换po
+    			vlog.i("*******getVersionListByremote getlist size:"+vl.size());
     			//写入数据库
     			SettingsManager.storeVersionsList(vl, bn,1);
     		}
-    		
     	}
+    	vlog.i("local:"+local+ "  remote:"+remote+"   needSyn:"+needSyn);
     	if(local<needSyn){//有待上传版本
     		if(update){
     			long tar=remote-local;
+    			
+    			local=SettingsManager.getMaxVnumByBookName(bn,1);
     		}else{
     			
     		}
     		//查看本地是否有更新,查询增量数据
-
-    		//提交增量数据
-
-    		//提交成功，修改本地状态
-			
+    		List<Version> list=SettingsManager.getVersionsList(bn, 0);
+    		if(list!=null&&list.size()>0){
+    			vlog.i("查询增量数据条数:"+list.size()+" | "+JSON.toJSONString(list));
+    			//提交增量数据
+    			List<Integer> boollist= uploadVersionList(list);
+    			
+    			//提交成功，修改本地状态
+    			for (int i = 0; i < list.size(); i++) {
+					if(boollist.get(i)==1){
+						SettingsManager.updateVersion(list.get(i).getId(),1);
+					}
+				}
+    		}
 		}
     		
     }
@@ -677,7 +689,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     
     //根据书名获取最大数
     private long getRemoteMaxVnumByBookName(String bn){
-    	String url =host+"/queryMaxNumByBN?bn=md5";
+    	String url =host+"/queryMaxNumByBN?bn=b36dc17387e06a00842e1ef5bd225739";
     	String json="{\"msg\":\"9\",\"res\":\"success\"}";
 //    	String json=HttpUtils.doPost(url, param);
     	if(json!=null&&!"".equals(json)){
@@ -687,15 +699,34 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     			Long r=Long.parseLong(map.get("msg"));
     			return r;
     		}else{
-    			LCTX.e("getRemoteMaxVnumByBookName:"+bn+" error"+map.get("msg"));
+    			vlog.e("getRemoteMaxVnumByBookName:"+bn+" error"+map.get("msg"));
     		}
     	}
     	return 0;
     }
     
-    
+    //批量上传版本信息
+    private List<Integer> uploadVersionList(List<Version> vl){
+    	String url=host+"/addlist?json="+JSON.toJSONString(vl);
+    	//提交数据获取结果
+    	String json="{\"msg\":\"[\\\"1\\\",\\\"1\\\"]\",\"res\":\"success\"}";
+    	if(json!=null&&!"".equals(json)){
+    		Map<String,String> map=(Map<String,String>)JSON.parse(json);
+    		String res=map.get("res");
+    		if(res!=null&&!"".equals(res)&&"success".equalsIgnoreCase(res)){
+    			//解析结果
+    			List<Integer> r=(List<Integer>)(JSON.parseArray(map.get("msg"), Integer.class));
+    			return r;
+    		}else{
+    			vlog.e("uploadVersionList: error"+map.get("msg"));
+    		}
+    	}
+    	return null;
+    }
     private List<Version> getVersionListByremote(String md5,long vnum){
-    	String json="xx";//need edit url post
+    	String url =host+"/querybookbyVnum?bn=b36dc17387e06a00842e1ef5bd225739&st=0";
+    	 String json="[{\"bid\":1,\"createtime\":1463133755000,\"id\":104,\"marksname\":\"test2\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":2},{\"bid\":1,\"createtime\":1463133755000,\"id\":105,\"marksname\":\"test3\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":3},{\"bid\":1,\"createtime\":1463133755000,\"id\":106,\"marksname\":\"test4\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":4},{\"bid\":1,\"createtime\":1463133755000,\"id\":107,\"marksname\":\"test5\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":5},{\"bid\":1,\"createtime\":1463133755000,\"id\":108,\"marksname\":\"test6\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":6},{\"bid\":1,\"createtime\":1463133755000,\"id\":109,\"marksname\":\"test7\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":7},{\"bid\":1,\"createtime\":1463133755000,\"id\":110,\"marksname\":\"test8\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":8},{\"bid\":1,\"createtime\":1463133755000,\"id\":111,\"marksname\":\"test9\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":9}]";
+    	//    	String  json=HttpUtils.post(url);
     	if(json!=null&&!"".equals(json)){
     		List<Version>  vl =paserJson2VersionList(json);
     		return vl;

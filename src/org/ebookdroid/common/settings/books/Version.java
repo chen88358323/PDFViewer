@@ -4,7 +4,7 @@ package org.ebookdroid.common.settings.books;
  */
 public class Version {
 
-	    private Long id;//也许没必要吧
+	    private Long id;//
 
 	    private Long vnum;//版本号，用来比对
 

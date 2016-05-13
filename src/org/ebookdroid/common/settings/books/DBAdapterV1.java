@@ -387,10 +387,12 @@ public class DBAdapterV1 implements IDBAdapter {
         bs.setId(c.getLong(index++));
         bs.setVnum(c.getLong(index++));
         bs.setMd5(c.getString(index++));
+        bs.setMarksname(c.getString(index++));
+        bs.setBookname(c.getString(index++));
         bs.setMethod(c.getString(index++));
         bs.setCreatetime(c.getLong(index++));
-        bs.setModifytime(index);
-
+        bs.setModifytime(c.getLong(index++));
+        bs.setSyntag(c.getInt(index++));
         return bs;
     }
 
@@ -415,16 +417,22 @@ public class DBAdapterV1 implements IDBAdapter {
         } catch (final Exception ex) {
         }
     }
-    public static final String getVersionByNameMD5Val="select  * from versions where md5=? and bookname=? and synctag=";
+    public static final String getVersionByNameMD5Val="select  * from versions where md5=?  and synctag=";
 	/**获取该书的记录列表**/
     @Override
 	public  List<Version> getVersionByBookNameMd5Val(Version v,int syncTag) {
+		 return getVersionByBookNameMd5Val(v.getMd5(),v.getBookname(),syncTag);
+	}
+    
+    /**获取该书的记录列表**/
+    @Override
+	public  List<Version> getVersionByBookNameMd5Val(String bn,String md5,int syncTag) {
 		 List<Version> vl=new ArrayList<Version>();
 		 	String order=" order by vnum desc";
 	        try {
 	            final SQLiteDatabase db = manager.getReadableDatabase();
 	            try {
-	                final Cursor c = db.rawQuery(getVersionByNameMD5Val+syncTag+order,  new String[]{v.getMd5(),v.getBookname()});
+	                final Cursor c = db.rawQuery(getVersionByNameMD5Val+syncTag+order,  new String[]{md5});
 	                if (c != null) {
 	                    try {
 	                        for (boolean next = c.moveToFirst(); next; next = c.moveToNext()) {
@@ -446,7 +454,7 @@ public class DBAdapterV1 implements IDBAdapter {
 	        return vl;
 	}
     //todo bookname or md5?
-    public static final String getMaxVnumByMD5ValSyncTag="select  max(vnum) from versions where bookname=? and synctag=";
+    public static final String getMaxVnumByMD5ValSyncTag="select  max(vnum) from versions where md5=? and synctag=";
 	public  long  getMaxVnumByBookNameMd5Val(String bn,int syncTag) {
     	long res=0;
 	        try {
@@ -531,4 +539,29 @@ public class DBAdapterV1 implements IDBAdapter {
 	        }
 	        return false;
 	}
+	public static final String DB_VERSION_UPDATE = "UPDATE versions  SET  synctag=?  WHERE  id=?";
+
+		
+	public  boolean  updateVersion(long vid,int synctag){
+		 try {
+	            final SQLiteDatabase db = manager.getWritableDatabase();
+	            try {
+	                db.beginTransaction();
+	                final Object[] args = new Object[] {
+	                		synctag,
+	                		vid
+	    	              };
+	    	        db.execSQL(DB_VERSION_UPDATE, args);
+	                db.setTransactionSuccessful();
+
+	                return true;
+	            } finally {
+	                endTransaction(db);
+	            }
+	        } catch (final Throwable th) {
+	            LCTX.e("Update version settings failed: ", th);
+	        }
+	        return false;
+	}
+	
 }
