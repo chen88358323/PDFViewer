@@ -529,10 +529,10 @@ public class SettingsManager {
 	}
 	//根据图书名称md5的值获取该图书的最大版本号
 	public static long getMaxVnumByBookName(String bookname,int syntag){
-		 LCTX.i("***************bn"+bookname);
+//		 LCTX.i("***************bn"+bookname);
 //		 bookname=StringUtils.md5(bookname);
-		 bookname= Md5Creater.getMd5(bookname);
-		 LCTX.i("***************md5 2"+bookname);
+//		 bookname= Md5Creater.getMd5(bookname);
+//		 LCTX.i("***************md5 2"+bookname);
 		 long num =db.getMaxVnumByBookNameMd5Val(bookname,syntag);
 		 return num;
 	}
@@ -542,8 +542,8 @@ public class SettingsManager {
 		}
 		
 		//获取指定版本集合
-	  	public static List<Version>  getVersionsList (String bn,int syntag) {
-	  		List<Version> list=db.getVersionByBookNameMd5Val(bn, Md5Creater.getMd5(bn), syntag);
+	  	public static List<Version>  getVersionsList (String md5,int syntag) {
+	  		List<Version> list=db.getVersionByBookNameMd5Val("", md5, syntag);
 	  		return list;
 	  	}
 	  	

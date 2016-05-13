@@ -108,7 +108,153 @@ public class RecentActivityController extends AbstractActivityController<RecentA
         MediaManager.listeners.addListener(this);
         SettingsManager.addListener(this);
     }
-
+    /****
+     * 同步线程
+     * */
+    class SyncThread  extends Thread {
+    	private String bn;
+    	SyncThread(String bookname){
+    		bn=bookname;
+    	}
+    	public void run(){
+    		String temp[] = bn.split("/"); /**split里面必须是正则表达式，"\\"的作用是对字符串转义*/  
+        	bn = temp[temp.length-1];  
+        	String md5=Md5Creater.getMd5(bn);
+        	vlog.i("******书籍:"+bn+" is start sync md5 is:"+md5);
+        	long local=SettingsManager.getMaxVnumByBookName(md5,1);
+        	long remote=getRemoteMaxVnumByBookName(md5);
+//        	long remote=0;
+        	//待同步
+        	long needSyn= SettingsManager.getMaxVnumByBookName(md5,0);
+            boolean update=false;
+        	if(local<remote){//远程有更新
+        		update=true;
+        		//获取增量数据
+        		List<Version> vl=getVersionListByremote(md5,local);
+        		if(vl!=null&&vl.size()>0){
+        			vlog.i("*******获取服务器增量数据 getlist size:"+vl.size());
+        			//写入数据库
+        			SettingsManager.storeVersionsList(vl, bn,1);
+        		}
+        	}
+        	vlog.i("local:"+local+ "  remote:"+remote+"   needSyn:"+needSyn);
+        	if(local<needSyn){//有待上传版本
+        		
+        		//查看本地是否有更新,查询增量数据
+        		List<Version> list=SettingsManager.getVersionsList(md5, 0);
+        		if(list!=null&&list.size()>0){
+        			if(update){// 
+        				vlog.i("服务器=====>客户端完毕，开始客户端=====>服务器端同步数据");
+        				vlog.i("查询增量数据条数:"+list.size()+" | "+JSON.toJSONString(list));
+            			long tar=remote-local;
+            			for (int i = 0; i < list.size(); i++) {
+    						list.get(i).setVnum(list.get(i).getVnum()+tar);
+    					}
+            		}
+        			vlog.i("查询增量数据条数:"+list.size()+" | "+JSON.toJSONString(list));
+        			//提交增量数据
+        			List<Integer> boollist= uploadVersionList(list);
+        			
+        			//提交成功，修改本地状态
+        			for (int i = 0; i < list.size(); i++) {
+    					if(boollist.get(i)==1){
+    						SettingsManager.updateVersion(list.get(i).getId(),1);
+    					}
+    				}
+        		}
+    		}
+    	}
+    	LogContext vlog = LogManager.root().lctx("booksync", false);
+        //同步最新图书信息
+//        private void syncRencetBooks( String bn){
+//        }
+        public static final String host="http://192.168.0.25:8080/rest/version";
+        
+        /***
+         * 根据书名获取最大数
+         * bn 为书名md5后的值
+         * */
+        private long getRemoteMaxVnumByBookName(String bn){
+//        	String url =host+"/queryMaxNumByBN?bn=b36dc17387e06a00842e1ef5bd225739";
+        	String url =host+"/queryMaxNumByBN?bn="+bn;
+//        	String json="{\"msg\":\"9\",\"res\":\"success\"}";
+        	String json=HttpUtils.post(url);
+        	vlog.i("根据书名"+bn+"获取当前服务器最大版本号url:"+url);
+        	vlog.i("根据书名"+bn+"获取当前服务器最大版本号返回数据为:"+json);
+        	if(json!=null&&!"".equals(json)){
+        		Map<String,String> map=(Map<String,String>)JSON.parse(json);
+        		String res=map.get("res");
+        		if(res!=null&&!"".equals(res)&&"success".equalsIgnoreCase(res)){
+        			Long r=Long.parseLong(map.get("msg"));
+        			return r;
+        		}else{
+        			vlog.e("getRemoteMaxVnumByBookName:"+bn+" error"+map.get("msg"));
+        		}
+        	}
+        	return 0;
+        }
+        
+        //批量上传版本信息
+        private List<Integer> uploadVersionList(List<Version> vl){
+        	String data=JSON.toJSONString(vl);
+        	String url=host+"/addlist";
+//        	String url=host+"/addlist?json="+data;
+        	//提交数据获取结果
+        	vlog.i("批量上传版本信息url :"+url);
+//        	String json="{\"msg\":\"[\\\"1\\\",\\\"1\\\"]\",\"res\":\"success\"}";
+        	String json=HttpUtils.postJson(url,data);
+        	vlog.i("批量上传版本信息 :"+data);
+        	vlog.i("批量上传版本信息返回数据为:"+json);
+        	
+        	if(json!=null&&!"".equals(json)){
+        		Map<String,String> map=(Map<String,String>)JSON.parse(json);
+        		String res=map.get("res");
+        		if(res!=null&&!"".equals(res)&&"success".equalsIgnoreCase(res)){
+        			//解析结果
+        			List<Integer> r=(List<Integer>)(JSON.parseArray(map.get("msg"), Integer.class));
+        			return r;
+        		}else{
+        			vlog.e("uploadVersionList: error"+map.get("msg"));
+        		}
+        	}
+        	return null;
+        }
+        
+        /***
+         * 根据图书md5值及版本号获取待更新数据
+         * **/
+        private List<Version> getVersionListByremote(String md5,long vnum){
+//        	String url =host+"/querybookbyVnum?bn=b36dc17387e06a00842e1ef5bd225739&st=0";
+//        	String json="[{\"bid\":1,\"createtime\":1463133755000,\"id\":104,\"marksname\":\"test2\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":2},{\"bid\":1,\"createtime\":1463133755000,\"id\":105,\"marksname\":\"test3\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":3},{\"bid\":1,\"createtime\":1463133755000,\"id\":106,\"marksname\":\"test4\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":4},{\"bid\":1,\"createtime\":1463133755000,\"id\":107,\"marksname\":\"test5\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":5},{\"bid\":1,\"createtime\":1463133755000,\"id\":108,\"marksname\":\"test6\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":6},{\"bid\":1,\"createtime\":1463133755000,\"id\":109,\"marksname\":\"test7\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":7},{\"bid\":1,\"createtime\":1463133755000,\"id\":110,\"marksname\":\"test8\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":8},{\"bid\":1,\"createtime\":1463133755000,\"id\":111,\"marksname\":\"test9\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":9}]";
+        	String url =host+"/querybookbyVnum?bn="+md5+"&st="+vnum;
+        	vlog.i("获取待更新数据url :"+url);
+        	String  json=HttpUtils.post(url);
+        	vlog.i("获取待更新数据返回结果:"+json);
+        	
+        	if(json!=null&&!"".equals(json)){
+        		Map<String,String> map=(Map<String,String>)JSON.parse(json);
+        		String res=map.get("res");
+        		if(res!=null&&!"".equals(res)&&"success".equalsIgnoreCase(res)){
+        			//解析结果
+        			List<Version>  vl =paserJson2VersionList(map.get("msg"));
+            		return vl;
+        		}else{
+        			vlog.e("uploadVersionList: error"+map.get("msg"));
+        		}
+        	}
+        	return null;
+        		
+    	}
+        
+        /***
+         * 解析json为list对象
+         * **/
+        private List<Version> paserJson2VersionList(String json){
+        	List<Version>  vl=JSON.parseArray(json, Version.class);
+        	return vl;
+        }
+        
+    }
     /**
      * {@inheritDoc}
      *
@@ -122,8 +268,12 @@ public class RecentActivityController extends AbstractActivityController<RecentA
 //获取最近图书列表
         final BookSettings recent = SettingsManager.getRecentBook();
         //同步信息
-        if(recent!=null&&!"".equals(recent.fileName))
-        	syncRencetBooks(recent.fileName);
+        if(recent!=null&&!"".equals(recent.fileName)){
+//        	syncRencetBooks(recent.fileName);
+        	SyncThread st=new SyncThread(recent.fileName);
+        	st.start();
+        }
+        	
         if (!recreated) {
             init();
             recentLoaded = checkAutoLoad(libSettings, recent);
@@ -636,112 +786,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
             }
         });
     }
-    
-    LogContext vlog = LogManager.root().lctx("booksync", false);
-    //同步最新图书信息
-    private void syncRencetBooks( String bn){
-    	String temp[] = bn.split("/"); /**split里面必须是正则表达式，"\\"的作用是对字符串转义*/  
-    	bn = temp[temp.length-1];  
-    	vlog.i("******"+bn+" is start sync md5 is:"+Md5Creater.getMd5(bn));
-    	long local=SettingsManager.getMaxVnumByBookName(bn,1);
-//    	long remote=getRemoteMaxVnumByBookName(bn);
-    	long remote=0;
-    	//待同步
-    	long needSyn= SettingsManager.getMaxVnumByBookName(bn,0);
-        boolean update=false;
-    	if(local<remote){//远程有更新
-    		update=true;
-    		//获取增量数据
-    		List<Version> vl=getVersionListByremote(bn,local);
-    		if(vl!=null&&vl.size()>0){
-    			vlog.i("*******getVersionListByremote getlist size:"+vl.size());
-    			//写入数据库
-    			SettingsManager.storeVersionsList(vl, bn,1);
-    		}
-    	}
-    	vlog.i("local:"+local+ "  remote:"+remote+"   needSyn:"+needSyn);
-    	if(local<needSyn){//有待上传版本
-    		if(update){
-    			long tar=remote-local;
-    			
-    			local=SettingsManager.getMaxVnumByBookName(bn,1);
-    		}else{
-    			
-    		}
-    		//查看本地是否有更新,查询增量数据
-    		List<Version> list=SettingsManager.getVersionsList(bn, 0);
-    		if(list!=null&&list.size()>0){
-    			vlog.i("查询增量数据条数:"+list.size()+" | "+JSON.toJSONString(list));
-    			//提交增量数据
-    			List<Integer> boollist= uploadVersionList(list);
-    			
-    			//提交成功，修改本地状态
-    			for (int i = 0; i < list.size(); i++) {
-					if(boollist.get(i)==1){
-						SettingsManager.updateVersion(list.get(i).getId(),1);
-					}
-				}
-    		}
-		}
-    		
-    }
-    public static final String host="http://localhost:8080/rest/version";
-    
-    //根据书名获取最大数
-    private long getRemoteMaxVnumByBookName(String bn){
-    	String url =host+"/queryMaxNumByBN?bn=b36dc17387e06a00842e1ef5bd225739";
-    	String json="{\"msg\":\"9\",\"res\":\"success\"}";
-//    	String json=HttpUtils.doPost(url, param);
-    	if(json!=null&&!"".equals(json)){
-    		Map<String,String> map=(Map<String,String>)JSON.parse(json);
-    		String res=map.get("res");
-    		if(res!=null&&!"".equals(res)&&"success".equalsIgnoreCase(res)){
-    			Long r=Long.parseLong(map.get("msg"));
-    			return r;
-    		}else{
-    			vlog.e("getRemoteMaxVnumByBookName:"+bn+" error"+map.get("msg"));
-    		}
-    	}
-    	return 0;
-    }
-    
-    //批量上传版本信息
-    private List<Integer> uploadVersionList(List<Version> vl){
-    	String url=host+"/addlist?json="+JSON.toJSONString(vl);
-    	//提交数据获取结果
-    	String json="{\"msg\":\"[\\\"1\\\",\\\"1\\\"]\",\"res\":\"success\"}";
-    	if(json!=null&&!"".equals(json)){
-    		Map<String,String> map=(Map<String,String>)JSON.parse(json);
-    		String res=map.get("res");
-    		if(res!=null&&!"".equals(res)&&"success".equalsIgnoreCase(res)){
-    			//解析结果
-    			List<Integer> r=(List<Integer>)(JSON.parseArray(map.get("msg"), Integer.class));
-    			return r;
-    		}else{
-    			vlog.e("uploadVersionList: error"+map.get("msg"));
-    		}
-    	}
-    	return null;
-    }
-    private List<Version> getVersionListByremote(String md5,long vnum){
-    	String url =host+"/querybookbyVnum?bn=b36dc17387e06a00842e1ef5bd225739&st=0";
-    	 String json="[{\"bid\":1,\"createtime\":1463133755000,\"id\":104,\"marksname\":\"test2\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":2},{\"bid\":1,\"createtime\":1463133755000,\"id\":105,\"marksname\":\"test3\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":3},{\"bid\":1,\"createtime\":1463133755000,\"id\":106,\"marksname\":\"test4\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":4},{\"bid\":1,\"createtime\":1463133755000,\"id\":107,\"marksname\":\"test5\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":5},{\"bid\":1,\"createtime\":1463133755000,\"id\":108,\"marksname\":\"test6\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":6},{\"bid\":1,\"createtime\":1463133755000,\"id\":109,\"marksname\":\"test7\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":7},{\"bid\":1,\"createtime\":1463133755000,\"id\":110,\"marksname\":\"test8\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":8},{\"bid\":1,\"createtime\":1463133755000,\"id\":111,\"marksname\":\"test9\",\"md5\":\"b36dc17387e06a00842e1ef5bd225739\",\"method\":\"ADD\",\"vnum\":9}]";
-    	//    	String  json=HttpUtils.post(url);
-    	if(json!=null&&!"".equals(json)){
-    		List<Version>  vl =paserJson2VersionList(json);
-    		return vl;
-    	}else
-    		return null;
-    		
-	}
-    
-    /***
-     * 解析json为list对象
-     * **/
-    private List<Version> paserJson2VersionList(String json){
-    	List<Version>  vl=JSON.parseArray(json, Version.class);
-    	return vl;
-    }
+   
     
     public void changeLibraryView(final int view) {
         if (!LibSettings.current().useBookcase) {

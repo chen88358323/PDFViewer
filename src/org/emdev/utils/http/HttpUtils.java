@@ -8,13 +8,20 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.util.EntityUtils;
+
+import com.alibaba.fastjson.JSONObject;
 
 public class HttpUtils {
 	private static final int TIMEOUT_IN_MILLIONS = 5000;  
@@ -226,7 +233,22 @@ public class HttpUtils {
 		}  
 		return result;  
 	}  
-	
+	public static String postJson(String url,String json ){
+		DefaultHttpClient httpClient = new DefaultHttpClient(); 
+		 HttpResponse response = null;
+	        String res=null;
+        try {   
+            HttpPost httpPost = new HttpPost(url);   
+            List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>();   
+            nameValuePair.add(new BasicNameValuePair("json", json));   
+            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePair)); 
+            response=httpClient.execute(httpPost);
+            res=EntityUtils.toString(response.getEntity());
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+        return res;
+	}
 	
 	public static String post(String url)  {
         BasicHttpParams httpParams = new BasicHttpParams();
@@ -234,7 +256,6 @@ public class HttpUtils {
         HttpConnectionParams.setSoTimeout(httpParams, 10 * 1000);
         DefaultHttpClient client = new DefaultHttpClient(httpParams);
         HttpPost post = new HttpPost(url);
-
         HttpResponse response = null;
         String res=null;
         try {
