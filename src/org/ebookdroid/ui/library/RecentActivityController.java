@@ -33,6 +33,8 @@ import org.emdev.common.backup.BackupManager;
 import org.emdev.common.filesystem.FileExtensionFilter;
 import org.emdev.common.filesystem.MediaManager;
 import org.emdev.common.filesystem.MediaState;
+import org.emdev.common.log.LogContext;
+import org.emdev.common.log.LogManager;
 import org.emdev.ui.AbstractActivityController;
 import org.emdev.ui.actions.ActionDialogBuilder;
 import org.emdev.ui.actions.ActionEx;
@@ -46,6 +48,7 @@ import org.emdev.utils.CompareUtils;
 import org.emdev.utils.FileUtils;
 import org.emdev.utils.LengthUtils;
 import org.emdev.utils.http.HttpUtils;
+import org.emdev.utils.md5.Md5Creater;
 
 import the.pdfviewerx.BrowserActivity;
 import the.pdfviewerx.EBookDroidApp;
@@ -119,7 +122,7 @@ public class RecentActivityController extends AbstractActivityController<RecentA
 //获取最近图书列表
         final BookSettings recent = SettingsManager.getRecentBook();
         //同步信息
-        syncRencetBooks(recent.fileName);
+//        syncRencetBooks(recent.fileName);
         if (!recreated) {
             init();
             recentLoaded = checkAutoLoad(libSettings, recent);
@@ -632,39 +635,13 @@ public class RecentActivityController extends AbstractActivityController<RecentA
             }
         });
     }
-
+    
+    LogContext vlog = LogManager.root().lctx("booksync", false);
     //同步最新图书信息
-//    private void syncRencetBooks( Collection<BookSettings> rb){
-//    		if(rb!=null&&rb.size()>0){
-//    			 for(Iterator<BookSettings> it=rb.iterator();it.hasNext();) {
-//    				
-//    				 BookSettings bs=it.next();
-//    				 long local=SettingsManager.getMaxVnumByBookName(bs.fileName,1);
-//    				 long remote=SettingsManager.getRemoteMaxVnumByBookName(bs.fileName);
-//    				 if(local==remote)
-//    					 continue;
-//    				 if(local<remote){//远程有更新
-//    					 //获取增量数据
-//    					 
-//    					 //写入数据库
-//    					 
-//    				 }else{
-//    					 //查看本地是否有更新
-//    					 
-//    					 //提交增量数据
-//    					 
-//    					 //提交成功，修改本地状态
-//    				 }
-//    			 }
-//    			
-//    		}
-//    }
-    
-    
-  //同步最新图书信息
     private void syncRencetBooks( String bn){
     	String temp[] = bn.split("/"); /**split里面必须是正则表达式，"\\"的作用是对字符串转义*/  
     	bn = temp[temp.length-1];  
+    	vlog.i("******"+bn+" is start sync md5 is:"+Md5Creater.getMd5(bn));
     	long local=SettingsManager.getMaxVnumByBookName(bn,1);
     	long remote=getRemoteMaxVnumByBookName(bn);
     	//待同步
@@ -674,8 +651,9 @@ public class RecentActivityController extends AbstractActivityController<RecentA
     		update=true;
     		//获取增量数据
     		List<Version> vl=getVersionListByremote(bn,local);
-    		//写入数据库
     		if(vl!=null&&vl.size()>0){
+    			//转换po
+    			//写入数据库
     			SettingsManager.storeVersionsList(vl, bn,1);
     		}
     		

@@ -212,7 +212,7 @@ public class GoToPageDialog extends Dialog {
             String val=value.toString();
             adapter.add(new Bookmark(val, page.index, 0, 0));
             //增加修改记录
-            Version v=new Version(Md5Creater.getMd5(val)  ,"ADD" ,val,new Date().getTime() );
+            Version v=new Version(Md5Creater.getMd5(fileName)  ,"ADD" ,val,new Date().getTime() );
             adapter.storeVersions(v,0);
             adapter.notifyDataSetChanged();
         }

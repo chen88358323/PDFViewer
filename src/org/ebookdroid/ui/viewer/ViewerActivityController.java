@@ -587,8 +587,9 @@ public class ViewerActivityController extends AbstractActivityController<ViewerA
             bookSettings.bookmarks.add(new Bookmark(name, documentModel.getCurrentIndex(), pos.x, pos.y));
             Collections.sort(bookSettings.bookmarks);
             SettingsManager.storeBookSettings(bookSettings);
-            //
-            Version v=new Version(Md5Creater.getMd5(name)  ,"ADD" ,bookTitle,new Date().getTime() );
+            String bn=bookSettings.fileName;
+            bn = bn.substring(bn.lastIndexOf("/")+1);  
+            Version v=new Version(Md5Creater.getMd5(bn)  ,"ADD" ,bookTitle,new Date().getTime() );
             v.setMarksname(name);
             SettingsManager.storeVersions(v,0);
             IUIManager.instance.invalidateOptionsMenu(getManagedComponent());

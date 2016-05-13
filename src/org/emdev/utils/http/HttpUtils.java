@@ -9,6 +9,13 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.util.EntityUtils;
+
 public class HttpUtils {
 	private static final int TIMEOUT_IN_MILLIONS = 5000;  
 
@@ -219,4 +226,23 @@ public class HttpUtils {
 		}  
 		return result;  
 	}  
+	
+	
+	public static String post(String url)  {
+        BasicHttpParams httpParams = new BasicHttpParams();
+        HttpConnectionParams.setConnectionTimeout(httpParams, 10 * 1000);
+        HttpConnectionParams.setSoTimeout(httpParams, 10 * 1000);
+        DefaultHttpClient client = new DefaultHttpClient(httpParams);
+        HttpPost post = new HttpPost(url);
+
+        HttpResponse response = null;
+        String res=null;
+        try {
+            response = client.execute(post);
+            res=EntityUtils.toString(response.getEntity());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return res;
+    }
 }
