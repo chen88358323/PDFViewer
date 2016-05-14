@@ -478,6 +478,32 @@ public class DBAdapterV1 implements IDBAdapter {
 
 	        return res;
 	}
+	
+	 public static final String getMaxVnumByMD5Val="select  max(vnum) from versions where md5=? ";
+		public  long  getMaxVnumByBookNameMd5Val(String md5) {
+	    	long res=0;
+		        try {
+		            final SQLiteDatabase db = manager.getReadableDatabase();
+		            try {
+		                final Cursor c = db.rawQuery(getMaxVnumByMD5Val, new String[]{md5} );
+		                if (c != null) {
+		                    try {
+		                    	c.moveToFirst();
+		                    	res=c.getLong(0);
+		                    } finally {
+		                        close(c);
+		                    }
+		                }
+		            } finally {
+		                manager.closeDatabase(db);
+		            }
+		        } catch (final Throwable th) {
+		            LCTX.e("Retrieving book settings failed: ", th);
+		        }
+
+		        return res;
+		}
+	
     public static final String getMaxVnumByNameMD5Val="select  max(vnum) from versions where md5=? and bookname=? and synctag=";
     @Override
 	public  long  getMaxVnumByBookNameMd5Val(Version v,int syncTag) {

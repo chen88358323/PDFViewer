@@ -522,7 +522,7 @@ public class SettingsManager {
   	}
 //存储版本对象
 	public static Version  storeVersions (final Version v,int syntag) {
-		long num =db.getMaxVnumByBookNameMd5Val(v,syntag);
+		long num =db.getMaxVnumByBookNameMd5Val(v.getMd5());
 		v.setVnum(num+1);
         boolean b = db.storeVersion(v);
         return v;
@@ -536,10 +536,6 @@ public class SettingsManager {
 		 long num =db.getMaxVnumByBookNameMd5Val(bookname,syntag);
 		 return num;
 	}
-	//根据图书名称md5的值获取该图书的最大版本号
-		public static long getRemoteMaxVnumByBookName(String bookname){
-			return 0;
-		}
 		
 		//获取指定版本集合
 	  	public static List<Version>  getVersionsList (String md5,int syntag) {

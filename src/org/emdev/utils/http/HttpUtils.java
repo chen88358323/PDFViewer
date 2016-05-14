@@ -19,9 +19,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-
-import com.alibaba.fastjson.JSONObject;
 
 public class HttpUtils {
 	private static final int TIMEOUT_IN_MILLIONS = 5000;  
@@ -241,7 +240,7 @@ public class HttpUtils {
             HttpPost httpPost = new HttpPost(url);   
             List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>();   
             nameValuePair.add(new BasicNameValuePair("json", json));   
-            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePair)); 
+            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePair,HTTP.UTF_8)); 
             response=httpClient.execute(httpPost);
             res=EntityUtils.toString(response.getEntity());
         }catch (IOException e) {

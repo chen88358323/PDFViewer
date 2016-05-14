@@ -295,6 +295,11 @@ public class DBSettingsManager extends SQLiteOpenHelper implements IDBAdapter, I
 		// TODO Auto-generated method stub
 		return adapter.getMaxVnumByBookNameMd5Val(v, syntag);
 	}
+	
+	public long  getMaxVnumByBookNameMd5Val(String bn) {
+		// TODO Auto-generated method stub
+		return adapter.getMaxVnumByBookNameMd5Val(bn);
+	}
 	@Override
 	public long  getMaxVnumByBookNameMd5Val(String bn,int syntag) {
 		// TODO Auto-generated method stub
